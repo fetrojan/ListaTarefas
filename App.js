@@ -11,7 +11,6 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <NavigationContainer>
-      <StatusBar />
 
       <Tab.Navigator initialRouteName='Tasks' screenOptions={{ tabBarIndicatorStyle: {backgroundColor: 'green'}}}>
 
@@ -20,6 +19,7 @@ export default function App() {
         <Tab.Screen name="Last Activity" component={LastActivityScreen} />
 
       </Tab.Navigator>
+      <StatusBar />
 
       </NavigationContainer>
     </SafeAreaView>
