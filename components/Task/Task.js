@@ -1,24 +1,25 @@
 import {useState} from 'react'
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
-function Task({ nome, descricao, status, data}) {
+function Task({ name, description, date, onToggleStatus}) {
 
     const [isDone, setIsDone] = useState(false)
 
-    const tarefaConcluida = () => {
+    const toggleTaskStatus = () => {
         setIsDone(!isDone)
+        onToggleStatus(!isDone)
     }
 
     return (
         <View style={styles.card}>
             <View style={styles.textContainer}>
-                <Text style={styles.title}>Teste{nome}</Text>
-                <Text style={styles.description}>estetestetestetetetestagfsafasffasfsafasteadsad{descricao}</Text>
-                <Text style={styles.dataCompletion}>Estimated Completion:{data}</Text>
+                <Text style={styles.title}>{name}</Text>
+                <Text style={styles.description}>{description}</Text>
+                <Text style={styles.dataCompletion}>Due Date:{date}</Text>
             </View>
 
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={[styles.button, isDone ? styles.buttonDone : styles.buttonPending]} onPress={tarefaConcluida}>
+                <TouchableOpacity style={[styles.button, isDone ? styles.buttonDone : styles.buttonPending]} onPress={toggleTaskStatus}>
                     <Text style={styles.buttonText}>{isDone ? "✔️ Done" : 'Finish'}</Text>
                 </TouchableOpacity>
             </View>
