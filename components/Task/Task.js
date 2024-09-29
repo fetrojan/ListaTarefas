@@ -94,7 +94,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: 'center',
         borderRadius: 8,
-        marginRight: 15
+        marginRight: 15,
+        marginBottom: 5
     },
     buttonCancelar:{
         backgroundColor: "red",

@@ -2,6 +2,7 @@ import {View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, SafeAreaView
 import Task from '../components/Task/Task'
 import {useState, useEffect} from 'react'
 import {getData, storeData} from '../services/storage'
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function TasksScreen() {
 
@@ -35,6 +36,9 @@ export default function TasksScreen() {
 
     const [inputValue, setInputValue] = useState("")
     const [modalVisible, setModalVisible] = useState(false)
+    const [descriptionValue, setDescriptionValue] = useState('');
+    const [dueDate, setDueDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [tasks, setTasks] = useState([])
     const [original, setOriginal] = useState([])
     const [search, setSearch] = useState("")
@@ -82,11 +86,18 @@ export default function TasksScreen() {
       }, [search, original, activeFilter])
 
     function newTask() {
+
+        const formattedDate = dueDate.toLocaleDateString('en-GB', {
+            month: 'long',
+            day: '2-digit',
+        });
+
         const newTask = {
+
           id: Date.now().toString(),
           name: inputValue,
-          description: "Exemplo de tarefa criada",
-          date: "19 set 2024",
+          description: descriptionValue,
+          date: formattedDate,
           isDone: false
         }
         
@@ -95,6 +106,8 @@ export default function TasksScreen() {
         setTasks(updatedTasks);
         storeData('tasks', updatedTasks);
         setInputValue("");
+        setDescriptionValue("")
+        setDueDate(new Date())
         setModalVisible(false);
       }
 
@@ -155,12 +168,40 @@ export default function TasksScreen() {
                     onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text>Nova Tarefa</Text>
-                        <TextInput 
+                        <Text style={styles.modalTitle}>Nova Tarefa</Text>
+
+                        <Text style={styles.label}>Título</Text>
+                        <TextInput style={styles.modalInput}
                         placeholder='Digite o nome da tarefa'
                         value={inputValue} onChangeText={setInputValue}/>
-                        <Button title='Cancelar' onPress={() => setModalVisible(false)} />
-                        <Button title='Salvar' onPress={newTask} />
+
+                        <Text style={styles.label}>Descrição</Text>
+                        <TextInput style={styles.modalInput} placeholder='Digite uma breve descrição' value={descriptionValue}
+                        onChangeText={setDescriptionValue}/>
+
+                        <Text style={styles.label}>Data de Vencimento</Text>
+                        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+                        <Text>{dueDate.toLocaleDateString()}</Text>
+                        </TouchableOpacity>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={dueDate}
+                                mode='date'
+                                display='calendar'
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(false);
+                                    if (selectedDate) {
+                                        setDueDate(selectedDate);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <View style={styles.buttonsContainer}>
+                            <TouchableOpacity onPress={newTask} style={styles.modalSalvar}><Text>Salvar</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCancelar}><Text>Cancelar</Text></TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -226,13 +267,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 22,
       },
     modalView: {
-        margin: 20,
         backgroundColor: 'white',
         borderRadius: 20,
-        padding: 35,
+        padding: 20,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -242,4 +281,47 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
       },
+      modalTitle:{
+        fontSize: 20,
+        marginBottom: 15
+      },
+      label: {
+        fontSize: 16,
+        marginBottom: 5,
+        alignSelf: 'flex-start',
+     },
+      modalInput: {
+        marginBottom: 15,
+        borderWidth: 1,
+        padding: 5,
+        width: 300
+      },
+      dateButton: {
+        backgroundColor: 'lightgray',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+        alignSelf: 'flex-start'
+        },
+    buttonsContainer: {
+        flexDirection: 'row',
+        gap: 40,
+        marginTop: 20
+    },
+      modalSalvar: {
+        backgroundColor: '#4b9c4b',
+        padding: 10,
+        borderRadius: 15,
+        marginBottom: 15,
+        width: 100,
+        alignItems: 'center'
+      },
+      modalCancelar: {
+        backgroundColor: '#CCC',
+        padding: 10,
+        borderRadius: 15,
+        marginBottom: 15,
+        width: 100,
+        alignItems: 'center'
+      }
 })
