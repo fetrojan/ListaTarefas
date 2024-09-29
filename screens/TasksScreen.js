@@ -1,6 +1,7 @@
 import {View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, SafeAreaView, Button} from 'react-native'
 import Task from '../components/Task/Task'
 import {useState, useEffect} from 'react'
+import {getData, storeData} from '../services/storage'
 
 export default function TasksScreen() {
 
@@ -37,39 +38,69 @@ export default function TasksScreen() {
     const [tasks, setTasks] = useState([])
     const [original, setOriginal] = useState([])
     const [search, setSearch] = useState("")
-
-    const toggleTaskStatus = (taskId, newStatus) => {
-        // Atualiza o status da tarefa pelo id
-        setTasks(tasks.map(task =>
-            task.id === taskId ? { ...task, isDone: newStatus } : task
-        ));
-    };
+    const [activeFilter, setActiveFilter] = useState('All')
 
     useEffect(() => {
         async function getStorageData() {
           const _tasks = await getData('tasks')
           if (_tasks) {
             setOriginal(_tasks)
+            setTasks(_tasks)
           }
         }
     
         getStorageData()
       }, [])
 
+      const removeTask = (taskId) => {
+        const updatedTasks = tasks.filter(task => task.id !== taskId)
+        setTasks(updatedTasks);
+        setOriginal(updatedTasks) // Remove a tarefa pelo ID
+        storeData('tasks', updatedTasks)
+    };
+
+      const toggleTaskStatus = (taskId, newStatus) => {
+        
+        const updatedTasks = original.map(task => task.id === taskId ? { ...task, isDone: newStatus} : task)
+        // Atualiza o status da tarefa pelo id
+        setOriginal(updatedTasks)
+        setTasks(updatedTasks)
+        storeData('tasks', updatedTasks) 
+    };
+
+      useEffect(() => {
+        const filteredTasks = original.filter(item =>
+          item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+
+        if (activeFilter === 'Open') {
+        setTasks(filteredTasks.filter(task => !task.isDone))
+        } else if (activeFilter === 'Done') {
+        setTasks(filteredTasks.filter(task => task.isDone))
+        } else {
+        setTasks(filteredTasks)
+        }
+      }, [search, original, activeFilter])
+
     function newTask() {
         const newTask = {
-          id: tasks.length + 1,
+          id: Date.now().toString(),
           name: inputValue,
           description: "Exemplo de tarefa criada",
           date: "19 set 2024",
           isDone: false
         }
         
-        setTasks(prev => [...prev, newTask])
-        setOriginal(prev => [...prev, newTask])
-        setInputValue("")    
-        setModalVisible(false)
+        const updatedTasks = [...original, newTask];
+        setOriginal(updatedTasks);
+        setTasks(updatedTasks);
+        storeData('tasks', updatedTasks);
+        setInputValue("");
+        setModalVisible(false);
       }
+
+    function handleFilterChange(filter) {
+        setActiveFilter(filter)
+    }
 
     return (
         
@@ -85,11 +116,18 @@ export default function TasksScreen() {
             </View>
 
             <TextInput style={styles.searchInput} placeholder='Buscar tarefa' onChangeText={setSearch} value={search} />
-
+            
+            
             <View style={styles.containerTasksTypes}>
-                <Text style={styles.taskType}>All</Text>
-                <Text style={styles.taskType}>Open</Text>
-                <Text style={styles.taskType}>Done</Text>
+                <TouchableOpacity style={[styles.buttonSelect, activeFilter === 'All' && styles.activeButton]} onPress={() => handleFilterChange('All')}>
+                    <Text style={styles.taskType}>All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.buttonSelect, activeFilter === 'Open' && styles.activeButton]} onPress={() => handleFilterChange('Open')}>
+                    <Text style={styles.taskType}>Open</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.buttonSelect, activeFilter === 'Done' && styles.activeButton]} onPress={() => handleFilterChange('Done')}>
+                    <Text style={styles.taskType}>Done</Text>
+                </TouchableOpacity>
             </View>
 
             <View style={styles.list}>
@@ -99,10 +137,13 @@ export default function TasksScreen() {
                 : 
                 tasks.map(task => (
                     <Task key={task.id}
+                        id={task.id}
                         name={task.name}
                         description={task.description}
                         date={task.date}
-                        onToggleStatus={(newStatus) => toggleTaskStatus(task.id, newStatus)} 
+                        isDone={task.isDone}
+                        onToggleStatus={(newStatus) => toggleTaskStatus(task.id, newStatus)}
+                        onRemoveTask={removeTask} 
                     />
                 ))
             }
@@ -173,6 +214,13 @@ const styles = StyleSheet.create({
     },
     taskType: {
         fontSize: 20
+    },
+    buttonSelect: {
+        padding: 10,
+        borderRadius: 10
+    },
+    activeButton: {
+        backgroundColor: 'lightblue'
     },
     centeredView: {
         flex: 1,
