@@ -1,4 +1,4 @@
-import {View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, SafeAreaView, Button} from 'react-native'
+import {View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, SafeAreaView, Button, ScrollView} from 'react-native'
 import Task from '../components/Task/Task'
 import {useState, useEffect} from 'react'
 import {getData, storeData} from '../services/storage'
@@ -59,17 +59,25 @@ export default function TasksScreen() {
       const removeTask = (taskId) => {
         const updatedTasks = tasks.filter(task => task.id !== taskId)
         setTasks(updatedTasks);
-        setOriginal(updatedTasks) // Remove a tarefa pelo ID
+        setOriginal(updatedTasks)
         storeData('tasks', updatedTasks)
     };
 
-      const toggleTaskStatus = (taskId, newStatus) => {
-        
-        const updatedTasks = original.map(task => task.id === taskId ? { ...task, isDone: newStatus} : task)
-        // Atualiza o status da tarefa pelo id
-        setOriginal(updatedTasks)
-        setTasks(updatedTasks)
-        storeData('tasks', updatedTasks) 
+        const toggleTaskStatus = (taskId, newStatus) => {
+            const updatedTasks = original.map(task => {
+                if (task.id === taskId) {
+                    return { 
+                        ...task, 
+                        isDone: newStatus, 
+                        finishedAt: newStatus ? new Date() : null 
+                    };
+                }
+                return task;
+        });
+    
+        setOriginal(updatedTasks);
+        setTasks(updatedTasks);
+        storeData('tasks', updatedTasks);
     };
 
       useEffect(() => {
@@ -91,6 +99,16 @@ export default function TasksScreen() {
             month: 'long',
             day: '2-digit',
         });
+
+        if (!inputValue.trim()) {
+            alert("O título da tarefa não pode estar vazio");
+            return;
+        }
+        
+        if (!descriptionValue.trim()) {
+            alert("A descrição da tarefa não pode estar vazia");
+            return;
+        }
 
         const newTask = {
 
@@ -143,7 +161,7 @@ export default function TasksScreen() {
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.list}>
+            <ScrollView style={styles.list}>
             {tasks.length === 0 
                 ? 
                 <Text>Não existem tarefas cadastradas.</Text> 
@@ -160,7 +178,7 @@ export default function TasksScreen() {
                     />
                 ))
             }
-            </View>
+            </ScrollView>
 
             <Modal  animationType='slide'
                     transparent={true}
@@ -225,7 +243,7 @@ const styles = StyleSheet.create({
         fontSize: 18
     },
     button: {
-        backgroundColor: 'blue',
+        backgroundColor: '#007AFF',
         padding: 10,
         borderRadius: 15,
         marginLeft: 45,
@@ -251,7 +269,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         borderWidth: 1,
         padding: 5,
-        borderBlockColor: 'blue',
+        borderBlockColor: '#007AFF',
     },
     taskType: {
         fontSize: 20

@@ -5,18 +5,19 @@ import { getData } from '../services/storage';
 export default function LastActivityScreen() {
     const [completedTasks, setCompletedTasks] = useState([]);
 
-    useEffect(() => {
-        async function fetchCompletedTasks() {
+    
+    const fetchCompletedTasks = async () => {
             const _tasks = await getData('tasks');
             if (_tasks) {
                 // Filtra e ordena as tarefas completadas
-                const completed = _tasks.filter(task => task.isDone).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const completed = _tasks.filter(task => task.isDone).sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt));
                 setCompletedTasks(completed);
             }
         }
 
+    useEffect(() => {
         fetchCompletedTasks();
-    }, []);
+    }, [completedTasks]);
 
     return (
         <View style={styles.container}>
@@ -27,7 +28,7 @@ export default function LastActivityScreen() {
                     <View key={task.id} style={styles.taskContainer}>
                         <Text style={styles.taskName}>{task.name}</Text>
                         <Text style={styles.taskDescription}>{task.description}</Text>
-                        <Text style={styles.taskDate}>Concluída em: {new Date(task.date).toLocaleString()}</Text>
+                        <Text style={styles.taskDate}>Concluída em: {new Date(task.finishedAt).toLocaleString()}</Text>
                     </View>
                 ))
             )}

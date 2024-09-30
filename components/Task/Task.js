@@ -5,32 +5,21 @@ import { getData, removeData, storeData} from '../../services/storage'
 function Task({ name, description, date, id, isDone, onToggleStatus, onRemoveTask}) {
 
     // Alterna o status da tarefa e atualiza usando o AsyncStorage
-    const toggleTaskStatus = async () => {
+    const toggleTaskStatus = () => {
         const newStatus = !isDone; // Inverte o estado atual
 
-        if (id) { // Verifica se o id está definido antes de armazenar
-            // Salva o novo status usando a função de service
-            await storeData(id, newStatus); // Usa o id como chave para armazenar o status
-        } else {
-            console.error("Task ID is undefined. Cannot store status.");
-        }
-
-        // Comunica o componente pai sobre a mudança, se necessário
         if (onToggleStatus) {
             onToggleStatus(newStatus);
         }
     };
 
-    const handleRemoveTask = async () => {
-        if (id) {
-            await removeData(id); // Chama a função de remoção passando o id da tarefa
-            if (onRemoveTask) {
-                onRemoveTask(id); // Comunica ao componente pai para remover a tarefa da lista
-            }
+    const handleRemoveTask = () => {
+        if (onRemoveTask) {
+                onRemoveTask(id); 
         } else {
             console.error("Task ID is undefined. Cannot remove task.");
         }
-    };
+    }
 
     return (
         <View style={styles.card}>
@@ -52,6 +41,7 @@ function Task({ name, description, date, id, isDone, onToggleStatus, onRemoveTas
         </View>
     )
 }
+
 
 export default Task;
 
